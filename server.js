@@ -4,27 +4,30 @@ const socketIo = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = socketIo(server, {
+    cors: {
+        origin: '*', // Permet à n'importe quelle origine de se connecter
+        methods: ['GET', 'POST']
+    },
+    transports: ['polling'] // Nécessaire pour Vercel
+});
 
-app.use(express.static('public')); // Servir les fichiers frontend
+const PORT = process.env.PORT || 3000;
 
-// Gestion des messages
 io.on('connection', (socket) => {
     console.log('Un utilisateur est connecté');
-    
-    // Recevoir un message
+
+    // Écoute de l'événement 'message'
     socket.on('message', (message) => {
-        console.log('Message reçu: ' + message);
-        io.emit('message', message); // Émettre à tous les utilisateurs connectés
+        console.log('Message reçu :', message);
+        io.emit('message', message); // Diffuse le message à tous les utilisateurs connectés
     });
 
-    // Déconnexion
     socket.on('disconnect', () => {
-        console.log('Utilisateur déconnecté');
+        console.log('Un utilisateur s\'est déconnecté');
     });
 });
 
-// Démarrer le serveur
-server.listen(3000, () => {
-    console.log('Serveur en écoute sur le port 3000');
+server.listen(PORT, () => {
+    console.log(`Serveur en ligne sur le port ${PORT}`);
 });
