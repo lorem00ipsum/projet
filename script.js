@@ -1,4 +1,4 @@
-const socket = io('https://votre-backend-url'); // Remplacez par l'URL de votre serveur
+const socket = io('https://my-animes-lorem00ipsums-projects.vercel.app/'); // Remplacez par l'URL de votre serveur
 
 // Fonction pour envoyer un message
 function sendMessage(event) {
