@@ -1,83 +1,51 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messagerie Instantanée</title>
-    
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #282c34;
-            color: white;
-        }
-        #chat-box {
-            width: 90%;
-            max-width: 600px;
-            height: 60vh;
-            overflow-y: scroll;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            background-color: white;
-            color: black;
-        }
-        #message-form {
-            display: flex;
-            width: 90%;
-            max-width: 600px;
-            margin-top: 10px;
-        }
-        #message-input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        #send-button {
-            margin-left: 10px;
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            background-color: #61dafb;
-            color: white;
-            cursor: pointer;
-        }
-    </style>
+    <title>Chat</title>
 </head>
 <body>
     <h1>Messagerie Instantanée</h1>
-    <div id="chat-box"></div>
+    <ul id="messages"></ul>
     <form id="message-form">
-        <input id="message-input" type="text" placeholder="Écrivez un message..." required />
-        <button id="send-button" type="submit">Envoyer</button>
+        <input id="message-input" autocomplete="off" placeholder="Entrez un message" />
+        <button type="submit">Envoyer</button>
     </form>
-
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     <script>
-        const chatBox = document.getElementById('chat-box');
-        const messageForm = document.getElementById('message-form');
-        const messageInput = document.getElementById('message-input');
+        // Connectez-vous à votre backend hébergé sur Vercel
+        const socket = io('https://my-animes.vercel.app', {
+            transports: ['polling'] // Pour contourner les limitations de WebSocket sur Vercel
+        });
 
-        const socket = new WebSocket('ws://localhost:3000'); // Remplacez avec l'URL du backend une fois en ligne
+        const form = document.getElementById('message-form');
+        const input = document.getElementById('message-input');
+        const messages = document.getElementById('messages');
 
-        socket.onmessage = (event) => {
-            const message = document.createElement('div');
-            message.textContent = event.data;
-            chatBox.appendChild(message);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        };
+        // Gérer l'envoi du message
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const message = input.value;
 
-        messageForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const message = messageInput.value;
-            socket.send(message);
-            messageInput.value = '';
+            if (message) {
+                console.log('Message envoyé:', message);
+                socket.emit('message', message); // Envoie le message au backend
+                input.value = ''; // Vide le champ de saisie
+            }
+        });
+
+        // Affichage des messages reçus
+        socket.on('message', (message) => {
+            console.log('Message reçu:', message);
+            const li = document.createElement('li');
+            li.textContent = message;
+            messages.appendChild(li); // Ajoute le message à la liste
+        });
+
+        // Gestion des erreurs de connexion
+        socket.on('connect_error', (err) => {
+            console.error('Erreur de connexion :', err.message);
         });
     </script>
 </body>
